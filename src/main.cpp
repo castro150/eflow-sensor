@@ -17,10 +17,22 @@
 ESP8266WiFiMulti WiFiMulti;
 
 unsigned long previousMillis = 0;
-const long INTERVAL = 10000;
+const long INTERVAL = 5000;
+
+const byte INTERRUPT_PIN = 13; // D7 - Node MCU ESP8266
+volatile uint32_t pulseCounter = 0;
+volatile uint64_t liters = 0;
+
+void handleInterrupt() {
+    pulseCounter++;
+    // TODO remover log
+    USE_SERIAL.printf("[INTERRUPT] count %d...\n", pulseCounter);
+}
 
 void setup() {
     USE_SERIAL.begin(115200);
+    pinMode(INTERRUPT_PIN, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), handleInterrupt, RISING);
 
     for(uint8_t t = 4; t > 0; t--) {
         USE_SERIAL.printf("[SETUP] WAIT %d...\n", t);
@@ -30,6 +42,8 @@ void setup() {
 
     WiFi.mode(WIFI_STA);
     WiFiMulti.addAP("CASA", "abcdef1234");
+
+    // TODO buscar litros do servidor
 }
 
 void loop() {
@@ -37,6 +51,10 @@ void loop() {
     
     // wait for WiFi connection
     if((WiFiMulti.run() == WL_CONNECTED) && (currentMillis - previousMillis >= INTERVAL)) {
+        // TODO obter litros do contador de pulso, zerá-lo e somar aos litros atuais
+        // TODO calcular vazão
+        // TODO enviar tudo para servidor
+
         previousMillis = currentMillis;
         HTTPClient http;
 
